@@ -4,10 +4,467 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Private Notes</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    header {
+      padding: 16px;
+      background: #222;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      background: #222;
+      color: white;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 16px;
+    }
+
+    #login,
+    #app {
+      display: none;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      margin-top: 30px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    textarea {
+      min-height: 250px;
+      resize: vertical;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .row > * {
+      flex: 1;
+    }
+
+    .note {
+      background: white;
+      padding: 14px;
+      border-radius: 10px;
+      margin-top: 10px;
+      cursor: pointer;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.08);
+    }
+
+    .note h3 {
+      margin: 0 0 6px;
+    }
+
+    .danger {
+      background: #b00020;
+    }
+
+    .secondary {
+      background: #666;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 17px;
+      }
+    }
+  </style>
 </head>
 
 <body>
+
+<header>
   <h1>🔐 My Private Notes</h1>
-  <p>Your personal notes website is coming soon.</p>
+  <button id="logoutBtn" onclick="logout()" style="display:none;">
+    Logout
+  </button>
+</header>
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <div id="login" class="card">
+    <h2>Login</h2>
+
+    <input
+      type="email"
+      id="email"
+      placeholder="Email"
+      autocomplete="email"
+    >
+
+    <input
+      type="password"
+      id="password"
+      placeholder="Password"
+      autocomplete="current-password"
+    >
+
+    <button onclick="login()">Login</button>
+
+    <div id="loginStatus"></div>
+  </div>
+
+
+  <!-- APP -->
+  <div id="app">
+
+    <div class="card">
+      <h2>📝 New Note</h2>
+
+      <input
+        type="text"
+        id="title"
+        placeholder="Note title"
+      >
+
+      <textarea
+        id="content"
+        placeholder="Write your note..."
+      ></textarea>
+
+      <div class="row">
+        <button onclick="saveNote()">Save Note</button>
+        <button class="secondary" onclick="clearEditor()">Clear</button>
+      </div>
+
+      <div id="status"></div>
+    </div>
+
+
+    <div class="card">
+      <h2>🔎 My Notes</h2>
+
+      <input
+        type="text"
+        id="search"
+        placeholder="Search notes..."
+        oninput="loadNotes()"
+      >
+
+      <div id="notesList"></div>
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+  // ==============================
+  // SUPABASE CONNECTION
+  // ==============================
+
+  const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";
+
+  const SUPABASE_PUBLISHABLE_KEY =
+    "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+
+  // ==============================
+  // START APP
+  // ==============================
+
+  async function startApp() {
+    const {
+      data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    if (session) {
+      showApp();
+    } else {
+      showLogin();
+    }
+  }
+
+
+  function showLogin() {
+    document.getElementById("login").style.display = "block";
+    document.getElementById("app").style.display = "none";
+    document.getElementById("logoutBtn").style.display = "none";
+  }
+
+
+  function showApp() {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    document.getElementById("logoutBtn").style.display = "block";
+
+    loadNotes();
+  }
+
+
+  // ==============================
+  // LOGIN
+  // ==============================
+
+  async function login() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    const status = document.getElementById("loginStatus");
+
+    status.textContent = "Logging in...";
+
+    const { error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      status.textContent = "❌ " + error.message;
+      return;
+    }
+
+    status.textContent = "";
+
+    showApp();
+  }
+
+
+  // ==============================
+  // LOGOUT
+  // ==============================
+
+  async function logout() {
+    await supabaseClient.auth.signOut();
+
+    showLogin();
+  }
+
+
+  // ==============================
+  // SAVE NOTE
+  // ==============================
+
+  async function saveNote() {
+    const title = document.getElementById("title").value.trim();
+    const content = document.getElementById("content").value.trim();
+    const status = document.getElementById("status");
+
+    if (!title && !content) {
+      status.textContent = "Write something first.";
+      return;
+    }
+
+    const {
+      data: { user }
+    } = await supabaseClient.auth.getUser();
+
+    if (!user) {
+      status.textContent = "Please login again.";
+      return;
+    }
+
+    status.textContent = "Saving...";
+
+    const { error } = await supabaseClient
+      .from("notes")
+      .insert({
+        user_id: user.id,
+        title: title,
+        content: content
+      });
+
+    if (error) {
+      status.textContent = "❌ " + error.message;
+      return;
+    }
+
+    status.textContent = "✅ Note saved!";
+
+    clearEditor();
+    loadNotes();
+  }
+
+
+  // ==============================
+  // LOAD NOTES
+  // ==============================
+
+  async function loadNotes() {
+    const search =
+      document.getElementById("search").value.toLowerCase();
+
+    let query = supabaseClient
+      .from("notes")
+      .select("*")
+      .order("updated_at", { ascending: false });
+
+    const { data, error } = await query;
+
+    const list = document.getElementById("notesList");
+
+    if (error) {
+      list.innerHTML = "❌ " + error.message;
+      return;
+    }
+
+    const filtered = data.filter(note =>
+      note.title.toLowerCase().includes(search) ||
+      note.content.toLowerCase().includes(search)
+    );
+
+    if (filtered.length === 0) {
+      list.innerHTML = "<p>No notes found.</p>";
+      return;
+    }
+
+    list.innerHTML = "";
+
+    filtered.forEach(note => {
+      const div = document.createElement("div");
+
+      div.className = "note";
+
+      div.innerHTML = `
+        <h3>${escapeHtml(note.title || "Untitled")}</h3>
+        <p>${escapeHtml(note.content.substring(0, 150))}</p>
+
+        <button onclick="editNote('${note.id}')">
+          Edit
+        </button>
+
+        <button
+          class="danger"
+          onclick="deleteNote('${note.id}')"
+        >
+          Delete
+        </button>
+      `;
+
+      list.appendChild(div);
+    });
+  }
+
+
+  // ==============================
+  // EDIT NOTE
+  // ==============================
+
+  async function editNote(id) {
+    const { data, error } = await supabaseClient
+      .from("notes")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    document.getElementById("title").value = data.title;
+    document.getElementById("content").value = data.content;
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  }
+
+
+  // ==============================
+  // DELETE NOTE
+  // ==============================
+
+  async function deleteNote(id) {
+    if (!confirm("Delete this note?")) {
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from("notes")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    loadNotes();
+  }
+
+
+  // ==============================
+  // CLEAR EDITOR
+  // ==============================
+
+  function clearEditor() {
+    document.getElementById("title").value = "";
+    document.getElementById("content").value = "";
+  }
+
+
+  // ==============================
+  // SECURITY HELPER
+  // ==============================
+
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+
+  startApp();
+</script>
+
 </body>
 </html>
