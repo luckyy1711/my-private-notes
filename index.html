@@ -1,581 +1,1781 @@
-<!DOCTYPEhtml>
-<htmllang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<metacharset="UTF-8">
-<metaname="viewport"content="width=device-width,initial-scale=1.0">
-<title>MyPrivateNotes</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<scriptsrc="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<title>My Notes</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-*{
-box-sizing:border-box;
+:root {
+  --bg: #f6f7fb;
+  --sidebar: #ffffff;
+  --card: #ffffff;
+  --text: #17181c;
+  --muted: #777b87;
+  --border: #e7e8ed;
+  --accent: #635bff;
+  --accent-light: #eeecff;
+  --danger: #ef4444;
+  --input: #f5f5f7;
 }
 
-body{
-margin:0;
-font-family:Arial,sans-serif;
-background:#f5f5f5;
-color:#222;
+.dark {
+  --bg: #111214;
+  --sidebar: #18191d;
+  --card: #1b1d21;
+  --text: #f4f4f5;
+  --muted: #9699a3;
+  --border: #2a2c31;
+  --accent: #8b83ff;
+  --accent-light: #29264d;
+  --danger: #ff6464;
+  --input: #24262b;
 }
 
-header{
-padding:16px;
-background:#222;
-color:white;
-display:flex;
-justify-content:space-between;
-align-items:center;
+* {
+  box-sizing: border-box;
 }
 
-headerh1{
-margin:0;
-font-size:20px;
+body {
+  margin: 0;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  background: var(--bg);
+  color: var(--text);
+  transition: background .2s, color .2s;
 }
 
-button{
-border:none;
-border-radius:8px;
-padding:10px14px;
-cursor:pointer;
-background:#222;
-color:white;
-margin:4px;
-}
-
-.container{
-max-width:900px;
-margin:auto;
-padding:16px;
-}
-
-#login,
-#app{
-display:none;
-}
-
-.card{
-background:white;
-padding:20px;
-border-radius:12px;
-box-shadow:02px10pxrgba(0,0,0,0.08);
-margin-top:30px;
-}
-
+button,
 input,
-textarea{
-width:100%;
-padding:12px;
-margin:8px0;
-border:1pxsolid#ccc;
-border-radius:8px;
-font-size:16px;
+textarea {
+  font: inherit;
 }
 
-textarea{
-min-height:250px;
-resize:vertical;
+button {
+  border: 0;
+  cursor: pointer;
 }
 
-.row{
-display:flex;
-gap:10px;
-flex-wrap:wrap;
+.app {
+  min-height: 100vh;
+  display: flex;
 }
 
-.note{
-background:white;
-padding:14px;
-border-radius:10px;
-margin-top:10px;
-box-shadow:01px5pxrgba(0,0,0,0.08);
+/* ================= SIDEBAR ================= */
+
+.sidebar {
+  width: 260px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  padding: 22px 16px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
 }
 
-.noteh3{
-margin:006px;
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 5px 8px 25px;
 }
 
-.danger{
-background:#b00020;
+.logo-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: white;
+  font-size: 20px;
 }
 
-.secondary{
-background:#666;
+.logo-title {
+  font-size: 17px;
+  font-weight: 750;
 }
 
-#status,
-#loginStatus{
-margin-top:10px;
-font-size:14px;
+.logo-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
 }
 
-@media(max-width:600px){
-headerh1{
-font-size:17px;
+.new-note {
+  width: 100%;
+  padding: 12px;
+  border-radius: 11px;
+  background: var(--accent);
+  color: white;
+  font-weight: 650;
+  margin-bottom: 22px;
+  box-shadow: 0 6px 18px rgba(99,91,255,.22);
 }
+
+.new-note:hover {
+  opacity: .9;
+}
+
+.section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  padding: 0 9px;
+  margin: 10px 0 7px;
+}
+
+.nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px;
+  margin: 2px 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+
+.nav-item:hover {
+  background: var(--input);
+}
+
+.nav-item.active {
+  background: var(--accent-light);
+  color: var(--accent);
+  font-weight: 650;
+}
+
+.folder-list {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.folder-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.folder-left {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.folder-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-delete {
+  background: transparent;
+  color: var(--muted);
+  opacity: 0;
+  padding: 3px;
+}
+
+.folder-item:hover .folder-delete {
+  opacity: 1;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+}
+
+.theme-button,
+.logout-button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+
+.theme-button:hover,
+.logout-button:hover {
+  background: var(--input);
+}
+
+.logout-button {
+  color: var(--danger);
+}
+
+/* ================= MAIN ================= */
+
+.main {
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar {
+  height: 74px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 28px;
+  background: var(--bg);
+}
+
+.mobile-menu {
+  display: none;
+}
+
+.search {
+  flex: 1;
+  max-width: 620px;
+  position: relative;
+}
+
+.search input {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 11px;
+  padding: 12px 15px 12px 40px;
+  outline: none;
+}
+
+.search input:focus {
+  border-color: var(--accent);
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+}
+
+.content {
+  max-width: 1100px;
+  margin: auto;
+  padding: 32px;
+}
+
+/* ================= DASHBOARD ================= */
+
+.welcome {
+  margin-bottom: 25px;
+}
+
+.welcome h1 {
+  margin: 0;
+  font-size: 29px;
+  letter-spacing: -.03em;
+}
+
+.welcome p {
+  color: var(--muted);
+  margin: 7px 0 0;
+}
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.note-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 18px;
+  min-height: 170px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+}
+
+.note-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 9px 25px rgba(0,0,0,.07);
+}
+
+.note-title {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 9px;
+}
+
+.note-preview {
+  color: var(--muted);
+  line-height: 1.55;
+  font-size: 14px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+
+.note-footer {
+  margin-top: auto;
+  padding-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.note-folder {
+  color: var(--accent);
+}
+
+/* ================= EDITOR ================= */
+
+.editor {
+  display: none;
+  max-width: 850px;
+  margin: auto;
+}
+
+.editor.show {
+  display: block;
+}
+
+.back-button {
+  background: transparent;
+  color: var(--muted);
+  padding: 7px 0;
+  margin-bottom: 20px;
+}
+
+.back-button:hover {
+  color: var(--text);
+}
+
+.editor-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.editor-title {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 30px;
+  font-weight: 750;
+  padding: 27px 30px 10px;
+}
+
+.editor-title::placeholder {
+  color: var(--muted);
+}
+
+.editor-content {
+  width: 100%;
+  min-height: 420px;
+  border: 0;
+  outline: none;
+  resize: vertical;
+  background: transparent;
+  color: var(--text);
+  padding: 12px 30px 30px;
+  line-height: 1.75;
+  font-size: 16px;
+}
+
+.editor-toolbar {
+  border-top: 1px solid var(--border);
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.save-status {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.save-button {
+  background: var(--accent);
+  color: white;
+  border-radius: 9px;
+  padding: 9px 17px;
+  font-weight: 650;
+}
+
+.delete-button {
+  background: transparent;
+  color: var(--danger);
+  padding: 9px;
+}
+
+/* ================= EMPTY ================= */
+
+.empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--muted);
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.empty h2 {
+  color: var(--text);
+  margin: 0 0 7px;
+}
+
+/* ================= LOGIN ================= */
+
+.login-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: var(--bg);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 15px 45px rgba(0,0,0,.08);
+}
+
+.login-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: white;
+  font-size: 25px;
+  margin-bottom: 20px;
+}
+
+.login-card h1 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.login-card p {
+  color: var(--muted);
+  margin-bottom: 25px;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--input);
+  color: var(--text);
+  margin-bottom: 11px;
+  outline: none;
+}
+
+.login-card input:focus {
+  border-color: var(--accent);
+}
+
+.login-button {
+  width: 100%;
+  padding: 13px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: white;
+  font-weight: 700;
+  margin-top: 5px;
+}
+
+.login-error {
+  color: var(--danger);
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+/* ================= MODAL ================= */
+
+.modal-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 20;
+  place-items: center;
+  padding: 20px;
+}
+
+.modal-bg.show {
+  display: grid;
+}
+
+.modal {
+  width: 100%;
+  max-width: 400px;
+  background: var(--card);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--border);
+}
+
+.modal h2 {
+  margin-top: 0;
+}
+
+.modal input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--input);
+  color: var(--text);
+  outline: none;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.cancel {
+  background: var(--input);
+  color: var(--text);
+}
+
+.create-folder {
+  background: var(--accent);
+  color: white;
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 750px) {
+
+  .sidebar {
+    position: fixed;
+    left: -280px;
+    top: 0;
+    bottom: 0;
+    z-index: 15;
+    transition: left .2s;
+  }
+
+  .sidebar.open {
+    left: 0;
+    box-shadow: 10px 0 30px rgba(0,0,0,.15);
+  }
+
+  .mobile-menu {
+    display: block;
+    background: transparent;
+    color: var(--text);
+    font-size: 22px;
+    padding: 4px;
+  }
+
+  .topbar {
+    padding: 0 15px;
+    height: 64px;
+  }
+
+  .content {
+    padding: 22px 15px;
+  }
+
+  .welcome h1 {
+    font-size: 25px;
+  }
+
+  .notes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-title {
+    font-size: 25px;
+    padding: 22px 20px 10px;
+  }
+
+  .editor-content {
+    padding: 10px 20px 25px;
+  }
+
+  .editor-toolbar {
+    padding: 10px;
+  }
 }
 </style>
 </head>
 
+
 <body>
 
-<header>
-<h1>🔐MyPrivateNotes</h1>
+<!-- ================= LOGIN ================= -->
 
-<buttonid="logoutBtn"onclick="logout()"style="display:none;">
-Logout
-</button>
-</header>
+<div id="loginScreen" class="login-screen">
 
-<divclass="container">
+  <div class="login-card">
 
-<divid="login"class="card">
-<h2>🔐Login</h2>
+    <div class="login-logo">🔐</div>
 
-<input
-type="email"
-id="email"
-placeholder="Email"
-autocomplete="email"
->
+    <h1>Welcome back</h1>
 
-<input
-type="password"
-id="password"
-placeholder="Password"
-autocomplete="current-password"
->
+    <p>Your private notes, everywhere.</p>
 
-<buttononclick="login()">Login</button>
+    <input
+      id="email"
+      type="email"
+      placeholder="Email"
+      autocomplete="email"
+    >
 
-<divid="loginStatus"></div>
+    <input
+      id="password"
+      type="password"
+      placeholder="Password"
+      autocomplete="current-password"
+    >
+
+    <button class="login-button" onclick="login()">
+      Sign in
+    </button>
+
+    <div id="loginError" class="login-error"></div>
+
+  </div>
+
+</div>
+
+
+<!-- ================= APP ================= -->
+
+<div id="app" class="app" style="display:none;">
+
+  <!-- SIDEBAR -->
+
+  <aside id="sidebar" class="sidebar">
+
+    <div class="logo">
+
+      <div class="logo-icon">✦</div>
+
+      <div>
+        <div class="logo-title">My Notes</div>
+        <div class="logo-sub">Private workspace</div>
+      </div>
+
+    </div>
+
+
+    <button class="new-note" onclick="newNote()">
+      ＋ New note
+    </button>
+
+
+    <div class="section-title">
+      Workspace
+    </div>
+
+    <button
+      id="allNotesButton"
+      class="nav-item active"
+      onclick="showAllNotes()"
+    >
+      📝
+      <span>All notes</span>
+    </button>
+
+
+    <div class="section-title">
+      Folders
+    </div>
+
+    <div id="folderList" class="folder-list"></div>
+
+    <button class="nav-item" onclick="openFolderModal()">
+      ＋
+      <span>New folder</span>
+    </button>
+
+
+    <div class="sidebar-bottom">
+
+      <button class="theme-button" onclick="toggleTheme()">
+        🌙
+        <span id="themeText">Dark mode</span>
+      </button>
+
+      <button class="logout-button" onclick="logout()">
+        ↪
+        <span>Log out</span>
+      </button>
+
+    </div>
+
+  </aside>
+
+
+  <!-- MAIN -->
+
+  <main class="main">
+
+    <div class="topbar">
+
+      <button
+        class="mobile-menu"
+        onclick="toggleSidebar()"
+      >
+        ☰
+      </button>
+
+      <div class="search">
+
+        <span class="search-icon">⌕</span>
+
+        <input
+          id="search"
+          type="text"
+          placeholder="Search your notes..."
+          oninput="renderNotes()"
+        >
+
+      </div>
+
+    </div>
+
+
+    <div class="content">
+
+      <!-- NOTES HOME -->
+
+      <section id="home">
+
+        <div class="welcome">
+
+          <h1 id="pageTitle">
+            My notes
+          </h1>
+
+          <p id="pageSubtitle">
+            Everything you want to remember.
+          </p>
+
+        </div>
+
+        <div id="notesGrid" class="notes-grid"></div>
+
+      </section>
+
+
+      <!-- EDITOR -->
+
+      <section id="editor" class="editor">
+
+        <button
+          class="back-button"
+          onclick="closeEditor()"
+        >
+          ← Back to notes
+        </button>
+
+        <div class="editor-card">
+
+          <input
+            id="noteTitle"
+            class="editor-title"
+            placeholder="Untitled"
+          >
+
+          <textarea
+            id="noteContent"
+            class="editor-content"
+            placeholder="Start writing..."
+          ></textarea>
+
+
+          <div class="editor-toolbar">
+
+            <div
+              id="saveStatus"
+              class="save-status"
+            >
+              Not saved
+            </div>
+
+            <div>
+
+              <button
+                id="deleteEditorButton"
+                class="delete-button"
+                onclick="deleteCurrentNote()"
+                style="display:none;"
+              >
+                Delete
+              </button>
+
+              <button
+                class="save-button"
+                onclick="saveNote()"
+              >
+                Save
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
 </div>
 
 
-<divid="app">
+<!-- ================= FOLDER MODAL ================= -->
 
-<divclass="card">
-<h2>📝NewNote</h2>
+<div id="folderModal" class="modal-bg">
 
-<input
-type="text"
-id="title"
-placeholder="Notetitle"
->
+  <div class="modal">
 
-<textarea
-id="content"
-placeholder="Writeyournote..."
-></textarea>
+    <h2>📁 New folder</h2>
 
-<divclass="row">
-<buttononclick="saveNote()">💾SaveNote</button>
-<buttonclass="secondary"onclick="clearEditor()">Clear</button>
-</div>
+    <input
+      id="folderName"
+      placeholder="e.g. School, Ideas, Projects..."
+    >
 
-<divid="status"></div>
-</div>
+    <div class="modal-buttons">
 
+      <button
+        class="cancel"
+        onclick="closeFolderModal()"
+      >
+        Cancel
+      </button>
 
-<divclass="card">
-<h2>🔎MyNotes</h2>
+      <button
+        class="create-folder"
+        onclick="createFolder()"
+      >
+        Create
+      </button>
 
-<input
-type="text"
-id="search"
-placeholder="Searchnotes..."
-oninput="loadNotes()"
->
+    </div>
 
-<divid="notesList"></div>
-</div>
-
-</div>
+  </div>
 
 </div>
 
 
 <script>
 
-//========================================
-//SUPABASECONNECTION
-//========================================
+/* =====================================================
+   SUPABASE
+===================================================== */
 
-constSUPABASE_URL=
-"https://neadherlqwnqafiwalov.supabase.co";
+const SUPABASE_URL =
+  "https://neadherlqwnqafiwalov.supabase.co";
 
-constSUPABASE_PUBLISHABLE_KEY=
-"sb_publishable_VA8wWt0-R6IFPPPYfW0Bdg_LS0NYrl4";
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_VA8wWt0-R6IFPPPYfW0Bdg_LS0NYrl4";
 
-constsupabaseClient=
-window.supabase.createClient(
-SUPABASE_URL,
-SUPABASE_PUBLISHABLE_KEY
-);
-
-
-//========================================
-//STARTAPP
-//========================================
-
-asyncfunctionstartApp(){
-
-const{
-data:{session}
-}=awaitsupabaseClient.auth.getSession();
-
-if(session){
-showApp();
-}else{
-showLogin();
-}
-}
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
 
 
-functionshowLogin(){
+/* =====================================================
+   STATE
+===================================================== */
 
-document.getElementById("login").style.display="block";
+let notes = [];
+let folders = [];
 
-document.getElementById("app").style.display="none";
-
-document.getElementById("logoutBtn").style.display="none";
-}
-
-
-functionshowApp(){
-
-document.getElementById("login").style.display="none";
-
-document.getElementById("app").style.display="block";
-
-document.getElementById("logoutBtn").style.display="block";
-
-loadNotes();
-}
+let currentNoteId = null;
+let currentFolderId = null;
 
 
-//========================================
-//LOGIN
-//========================================
+/* =====================================================
+   START
+===================================================== */
 
-asyncfunctionlogin(){
+async function startApp() {
 
-constemail=
-document.getElementById("email").value.trim();
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
 
-constpassword=
-document.getElementById("password").value;
+  if (session) {
 
-conststatus=
-document.getElementById("loginStatus");
+    document.getElementById("loginScreen").style.display =
+      "none";
 
-if(!email||!password){
+    document.getElementById("app").style.display =
+      "flex";
 
-status.textContent=
-"Pleaseenteryouremailandpassword.";
+    await loadFolders();
+    await loadNotes();
 
-return;
-}
+  } else {
 
-status.textContent="Loggingin...";
+    document.getElementById("loginScreen").style.display =
+      "grid";
 
-const{error}=
-awaitsupabaseClient.auth.signInWithPassword({
-email:email,
-password:password
-});
+    document.getElementById("app").style.display =
+      "none";
+  }
 
-if(error){
-
-status.textContent=
-"❌"+error.message;
-
-return;
-}
-
-status.textContent="";
-
-showApp();
 }
 
 
-//========================================
-//LOGOUT
-//========================================
+/* =====================================================
+   LOGIN
+===================================================== */
 
-asyncfunctionlogout(){
+async function login() {
 
-awaitsupabaseClient.auth.signOut();
+  const email =
+    document.getElementById("email").value.trim();
 
-clearEditor();
+  const password =
+    document.getElementById("password").value;
 
-showLogin();
+  const error =
+    document.getElementById("loginError");
+
+  error.textContent = "";
+
+  if (!email || !password) {
+
+    error.textContent =
+      "Please enter your email and password.";
+
+    return;
+  }
+
+  const { error: loginError } =
+    await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+  if (loginError) {
+
+    error.textContent =
+      loginError.message;
+
+    return;
+  }
+
+  startApp();
 }
 
 
-//========================================
-//SAVENOTE
-//========================================
+/* =====================================================
+   LOGOUT
+===================================================== */
 
-asyncfunctionsaveNote(){
+async function logout() {
 
-consttitle=
-document.getElementById("title").value.trim();
+  await supabaseClient.auth.signOut();
 
-constcontent=
-document.getElementById("content").value.trim();
-
-conststatus=
-document.getElementById("status");
-
-if(!title&&!content){
-
-status.textContent=
-"Writesomethingfirst.";
-
-return;
-}
-
-const{
-data:{user}
-}=awaitsupabaseClient.auth.getUser();
-
-if(!user){
-
-status.textContent=
-"Pleaseloginagain.";
-
-return;
-}
-
-status.textContent="Saving...";
-
-const{error}=
-awaitsupabaseClient
-.from("notes")
-.insert({
-user_id:user.id,
-title:title,
-content:content
-});
-
-if(error){
-
-status.textContent=
-"❌"+error.message;
-
-return;
-}
-
-status.textContent=
-"✅Notesaved!";
-
-clearEditor();
-
-loadNotes();
+  location.reload();
 }
 
 
-//========================================
-//LOADNOTES
-//========================================
+/* =====================================================
+   NOTES
+===================================================== */
 
-asyncfunctionloadNotes(){
+async function loadNotes() {
 
-constsearch=
-document.getElementById("search").value
-.toLowerCase()
-.trim();
+  const {
+    data: { user }
+  } = await supabaseClient.auth.getUser();
 
-const{
-data:{user}
-}=awaitsupabaseClient.auth.getUser();
+  if (!user) return;
 
-if(!user)return;
+  const { data, error } =
+    await supabaseClient
+      .from("notes")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("updated_at", {
+        ascending: false
+      });
 
-const{
-data,
-error
-}=awaitsupabaseClient
-.from("notes")
-.select("*")
-.eq("user_id",user.id)
-.order("updated_at",{
-ascending:false
-});
+  if (error) {
 
-constlist=
-document.getElementById("notesList");
+    console.error(error);
 
-if(error){
+    return;
+  }
 
-list.innerHTML=
-"❌"+error.message;
+  notes = data || [];
 
-return;
-}
-
-constfiltered=
-data.filter(note=>
-
-(note.title||"")
-.toLowerCase()
-.includes(search)
-
-||
-
-(note.content||"")
-.toLowerCase()
-.includes(search)
-);
-
-if(filtered.length===0){
-
-list.innerHTML=
-"<p>Nonotesfound.</p>";
-
-return;
-}
-
-list.innerHTML="";
-
-filtered.forEach(note=>{
-
-constdiv=
-document.createElement("div");
-
-div.className="note";
-
-
-consttitle=
-document.createElement("h3");
-
-title.textContent=
-note.title||"Untitled";
-
-
-constcontent=
-document.createElement("p");
-
-content.textContent=
-(note.content||"").substring(0,150);
-
-
-consteditButton=
-document.createElement("button");
-
-editButton.textContent=
-"✏️Edit";
-
-editButton.onclick=
-()=>editNote(note.id);
-
-
-constdeleteButton=
-document.createElement("button");
-
-deleteButton.textContent=
-"🗑️Delete";
-
-deleteButton.className=
-"danger";
-
-deleteButton.onclick=
-()=>deleteNote(note.id);
-
-
-div.appendChild(title);
-
-div.appendChild(content);
-
-div.appendChild(editButton);
-
-div.appendChild(deleteButton);
-
-list.appendChild(div);
-});
+  renderNotes();
 }
 
 
-//========================================
-//EDITNOTE
-//========================================
+function renderNotes() {
 
-asyncfunctioneditNote(id){
+  const grid =
+    document.getElementById("notesGrid");
 
-const{
-data,
-error
-}=awaitsupabaseClient
-.from("notes")
-.select("*")
-.eq("id",id)
-.single();
+  const search =
+    document.getElementById("search").value
+      .toLowerCase()
+      .trim();
 
-if(error){
 
-alert(error.message);
+  let filtered = notes.filter(note => {
 
-return;
+    const matchesSearch =
+      (note.title || "")
+        .toLowerCase()
+        .includes(search)
+      ||
+      (note.content || "")
+        .toLowerCase()
+        .includes(search);
+
+    const matchesFolder =
+      !currentFolderId ||
+      note.folder_id === currentFolderId;
+
+    return matchesSearch && matchesFolder;
+  });
+
+
+  if (filtered.length === 0) {
+
+    grid.innerHTML = `
+
+      <div class="empty">
+
+        <div class="empty-icon">📝</div>
+
+        <h2>No notes yet</h2>
+
+        <p>
+          Create your first note and start
+          building your personal knowledge base.
+        </p>
+
+        <button
+          class="save-button"
+          onclick="newNote()"
+        >
+          ＋ Create a note
+        </button>
+
+      </div>
+
+    `;
+
+    return;
+  }
+
+
+  grid.innerHTML = "";
+
+
+  filtered.forEach(note => {
+
+    const card =
+      document.createElement("div");
+
+    card.className =
+      "note-card";
+
+    card.onclick =
+      () => openNote(note.id);
+
+
+    const title =
+      document.createElement("div");
+
+    title.className =
+      "note-title";
+
+    title.textContent =
+      note.title || "Untitled";
+
+
+    const preview =
+      document.createElement("div");
+
+    preview.className =
+      "note-preview";
+
+    preview.textContent =
+      note.content || "Empty note";
+
+
+    const footer =
+      document.createElement("div");
+
+    footer.className =
+      "note-footer";
+
+
+    const folder =
+      folders.find(
+        f => f.id === note.folder_id
+      );
+
+
+    footer.innerHTML = `
+
+      <span>
+        ${formatDate(note.updated_at)}
+      </span>
+
+      ${
+        folder
+          ? `<span class="note-folder">
+               📁 ${escapeHtml(folder.name)}
+             </span>`
+          : ""
+      }
+
+    `;
+
+
+    card.appendChild(title);
+    card.appendChild(preview);
+    card.appendChild(footer);
+
+    grid.appendChild(card);
+
+  });
+
 }
 
-document.getElementById("title").value=
-data.title||"";
 
-document.getElementById("content").value=
-data.content||"";
+/* =====================================================
+   NEW NOTE
+===================================================== */
 
-window.scrollTo({
-top:0,
-behavior:"smooth"
-});
+function newNote() {
+
+  currentNoteId = null;
+
+  document.getElementById("noteTitle").value = "";
+
+  document.getElementById("noteContent").value = "";
+
+  document.getElementById("saveStatus").textContent =
+    "New note";
+
+  document.getElementById(
+    "deleteEditorButton"
+  ).style.display = "none";
+
+
+  document.getElementById("home").style.display =
+    "none";
+
+  document.getElementById("editor").classList.add(
+    "show"
+  );
+
+  document.getElementById("noteTitle").focus();
+
 }
 
 
-//========================================
-//DELETENOTE
-//========================================
+/* =====================================================
+   OPEN NOTE
+===================================================== */
 
-asyncfunctiondeleteNote(id){
+function openNote(id) {
 
-if(!confirm("Deletethisnote?")){
-return;
-}
+  const note =
+    notes.find(n => n.id === id);
 
-const{error}=
-awaitsupabaseClient
-.from("notes")
-.delete()
-.eq("id",id);
+  if (!note) return;
 
-if(error){
+  currentNoteId = id;
 
-alert(error.message);
+  document.getElementById("noteTitle").value =
+    note.title || "";
 
-return;
-}
+  document.getElementById("noteContent").value =
+    note.content || "";
 
-loadNotes();
-}
+  document.getElementById("saveStatus").textContent =
+    "Saved " + formatDate(note.updated_at);
+
+  document.getElementById(
+    "deleteEditorButton"
+  ).style.display = "inline-block";
 
 
-//========================================
-//CLEAREDITOR
-//========================================
+  document.getElementById("home").style.display =
+    "none";
 
-functionclearEditor(){
+  document.getElementById("editor").classList.add(
+    "show"
+  );
 
-document.getElementById("title").value="";
-
-document.getElementById("content").value="";
-
-document.getElementById("status").textContent="";
 }
 
 
-//========================================
-//START
-//========================================
+/* =====================================================
+   SAVE NOTE
+===================================================== */
+
+async function saveNote() {
+
+  const title =
+    document.getElementById("noteTitle").value.trim();
+
+  const content =
+    document.getElementById("noteContent").value;
+
+  const status =
+    document.getElementById("saveStatus");
+
+
+  if (!title && !content.trim()) {
+
+    status.textContent =
+      "Write something first.";
+
+    return;
+  }
+
+
+  const {
+    data: { user }
+  } = await supabaseClient.auth.getUser();
+
+  if (!user) return;
+
+
+  status.textContent =
+    "Saving...";
+
+
+  if (currentNoteId) {
+
+    const { error } =
+      await supabaseClient
+        .from("notes")
+        .update({
+          title,
+          content,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", currentNoteId)
+        .eq("user_id", user.id);
+
+
+    if (error) {
+
+      status.textContent =
+        "Could not save.";
+
+      console.error(error);
+
+      return;
+    }
+
+  } else {
+
+    const { data, error } =
+      await supabaseClient
+        .from("notes")
+        .insert({
+          user_id: user.id,
+          title,
+          content,
+          folder_id: currentFolderId
+        })
+        .select()
+        .single();
+
+
+    if (error) {
+
+      status.textContent =
+        "Could not save.";
+
+      console.error(error);
+
+      return;
+    }
+
+    currentNoteId =
+      data.id;
+  }
+
+
+  status.textContent =
+    "✓ Saved";
+
+  document.getElementById(
+    "deleteEditorButton"
+  ).style.display = "inline-block";
+
+
+  await loadNotes();
+
+}
+
+
+/* =====================================================
+   DELETE
+===================================================== */
+
+async function deleteCurrentNote() {
+
+  if (!currentNoteId) return;
+
+
+  if (!confirm("Delete this note?")) {
+    return;
+  }
+
+
+  const { error } =
+    await supabaseClient
+      .from("notes")
+      .delete()
+      .eq("id", currentNoteId);
+
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
+
+
+  currentNoteId = null;
+
+  await loadNotes();
+
+  closeEditor();
+
+}
+
+
+function closeEditor() {
+
+  document.getElementById("editor").classList.remove(
+    "show"
+  );
+
+  document.getElementById("home").style.display =
+    "block";
+
+  currentNoteId = null;
+
+}
+
+
+/* =====================================================
+   FOLDERS
+===================================================== */
+
+async function loadFolders() {
+
+  const {
+    data: { user }
+  } = await supabaseClient.auth.getUser();
+
+  if (!user) return;
+
+
+  const { data, error } =
+    await supabaseClient
+      .from("folders")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at");
+
+
+  if (error) {
+
+    console.error(error);
+
+    return;
+  }
+
+
+  folders = data || [];
+
+  renderFolders();
+
+}
+
+
+function renderFolders() {
+
+  const list =
+    document.getElementById("folderList");
+
+  list.innerHTML = "";
+
+
+  folders.forEach(folder => {
+
+    const button =
+      document.createElement("button");
+
+    button.className =
+      "nav-item folder-item";
+
+
+    if (currentFolderId === folder.id) {
+
+      button.classList.add("active");
+    }
+
+
+    button.onclick =
+      () => showFolder(folder.id);
+
+
+    button.innerHTML = `
+
+      <span class="folder-left">
+
+        <span>📁</span>
+
+        <span class="folder-name">
+          ${escapeHtml(folder.name)}
+        </span>
+
+      </span>
+
+      <span
+        class="folder-delete"
+        onclick="deleteFolder(event, '${folder.id}')"
+      >
+        ×
+      </span>
+
+    `;
+
+
+    list.appendChild(button);
+
+  });
+
+}
+
+
+function showFolder(id) {
+
+  currentFolderId = id;
+
+  const folder =
+    folders.find(f => f.id === id);
+
+
+  document.getElementById("pageTitle").textContent =
+    folder ? folder.name : "My notes";
+
+  document.getElementById("pageSubtitle").textContent =
+    "Notes in this folder";
+
+
+  document.getElementById(
+    "allNotesButton"
+  ).classList.remove("active");
+
+
+  renderFolders();
+
+  renderNotes();
+
+  closeMobileSidebar();
+
+}
+
+
+function showAllNotes() {
+
+  currentFolderId = null;
+
+  document.getElementById("pageTitle").textContent =
+    "My notes";
+
+  document.getElementById("pageSubtitle").textContent =
+    "Everything you want to remember.";
+
+
+  document.getElementById(
+    "allNotesButton"
+  ).classList.add("active");
+
+
+  renderFolders();
+
+  renderNotes();
+
+  closeMobileSidebar();
+
+}
+
+
+/* =====================================================
+   CREATE FOLDER
+===================================================== */
+
+function openFolderModal() {
+
+  document
+    .getElementById("folderModal")
+    .classList.add("show");
+
+  document
+    .getElementById("folderName")
+    .value = "";
+
+  document
+    .getElementById("folderName")
+    .focus();
+
+}
+
+
+function closeFolderModal() {
+
+  document
+    .getElementById("folderModal")
+    .classList.remove("show");
+
+}
+
+
+async function createFolder() {
+
+  const name =
+    document
+      .getElementById("folderName")
+      .value
+      .trim();
+
+
+  if (!name) return;
+
+
+  const {
+    data: { user }
+  } = await supabaseClient.auth.getUser();
+
+
+  const { error } =
+    await supabaseClient
+      .from("folders")
+      .insert({
+        user_id: user.id,
+        name
+      });
+
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
+
+
+  closeFolderModal();
+
+  await loadFolders();
+
+}
+
+
+async function deleteFolder(event, id) {
+
+  event.stopPropagation();
+
+
+  if (!confirm("Delete this folder? Notes will not be deleted.")) {
+    return;
+  }
+
+
+  const { error } =
+    await supabaseClient
+      .from("folders")
+      .delete()
+      .eq("id", id);
+
+
+  if (error) {
+
+    alert(error.message);
+
+    return;
+  }
+
+
+  if (currentFolderId === id) {
+    currentFolderId = null;
+  }
+
+
+  await loadFolders();
+  await loadNotes();
+
+}
+
+
+/* =====================================================
+   DARK MODE
+===================================================== */
+
+function toggleTheme() {
+
+  document.body.classList.toggle("dark");
+
+  const dark =
+    document.body.classList.contains("dark");
+
+
+  document.getElementById("themeText").textContent =
+    dark ? "Light mode" : "Dark mode";
+
+
+  localStorage.setItem(
+    "darkMode",
+    dark ? "1" : "0"
+  );
+
+}
+
+
+if (localStorage.getItem("darkMode") === "1") {
+
+  document.body.classList.add("dark");
+
+  document.getElementById("themeText").textContent =
+    "Light mode";
+
+}
+
+
+/* =====================================================
+   MOBILE SIDEBAR
+===================================================== */
+
+function toggleSidebar() {
+
+  document
+    .getElementById("sidebar")
+    .classList.toggle("open");
+
+}
+
+
+function closeMobileSidebar() {
+
+  document
+    .getElementById("sidebar")
+    .classList.remove("open");
+
+}
+
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function formatDate(date) {
+
+  if (!date) return "";
+
+  const d =
+    new Date(date);
+
+  const now =
+    new Date();
+
+  const diff =
+    now - d;
+
+
+  if (diff < 60000) {
+    return "Just now";
+  }
+
+  if (diff < 3600000) {
+    return Math.floor(diff / 60000) + "m ago";
+  }
+
+  if (diff < 86400000) {
+    return Math.floor(diff / 3600000) + "h ago";
+  }
+
+  if (diff < 604800000) {
+    return Math.floor(diff / 86400000) + "d ago";
+  }
+
+  return d.toLocaleDateString(
+    undefined,
+    {
+      day: "numeric",
+      month: "short"
+    }
+  );
+
+}
+
+
+function escapeHtml(text) {
+
+  const div =
+    document.createElement("div");
+
+  div.textContent =
+    text;
+
+  return div.innerHTML;
+
+}
+
+
+/* =====================================================
+   RUN
+===================================================== */
 
 startApp();
 
