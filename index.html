@@ -1,469 +1,584 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPEhtml>
+<htmllang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Private Notes</title>
+<metacharset="UTF-8">
+<metaname="viewport"content="width=device-width,initial-scale=1.0">
+<title>MyPrivateNotes</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<scriptsrc="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<style>
+*{
+box-sizing:border-box;
+}
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      color: #222;
-    }
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:#f5f5f5;
+color:#222;
+}
 
-    header {
-      padding: 16px;
-      background: #222;
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+header{
+padding:16px;
+background:#222;
+color:white;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
 
-    header h1 {
-      margin: 0;
-      font-size: 20px;
-    }
+headerh1{
+margin:0;
+font-size:20px;
+}
 
-    button {
-      border: none;
-      border-radius: 8px;
-      padding: 10px 14px;
-      cursor: pointer;
-      background: #222;
-      color: white;
-    }
+button{
+border:none;
+border-radius:8px;
+padding:10px14px;
+cursor:pointer;
+background:#222;
+color:white;
+margin:4px;
+}
 
-    .container {
-      max-width: 900px;
-      margin: auto;
-      padding: 16px;
-    }
+.container{
+max-width:900px;
+margin:auto;
+padding:16px;
+}
 
-    #login,
-    #app {
-      display: none;
-    }
+#login,
+#app{
+display:none;
+}
 
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-      margin-top: 30px;
-    }
+.card{
+background:white;
+padding:20px;
+border-radius:12px;
+box-shadow:02px10pxrgba(0,0,0,0.08);
+margin-top:30px;
+}
 
-    input,
-    textarea,
-    select {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
-    }
+input,
+textarea{
+width:100%;
+padding:12px;
+margin:8px0;
+border:1pxsolid#ccc;
+border-radius:8px;
+font-size:16px;
+}
 
-    textarea {
-      min-height: 250px;
-      resize: vertical;
-    }
+textarea{
+min-height:250px;
+resize:vertical;
+}
 
-    .row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+.row{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
 
-    .row > * {
-      flex: 1;
-    }
+.note{
+background:white;
+padding:14px;
+border-radius:10px;
+margin-top:10px;
+box-shadow:01px5pxrgba(0,0,0,0.08);
+}
 
-    .note {
-      background: white;
-      padding: 14px;
-      border-radius: 10px;
-      margin-top: 10px;
-      cursor: pointer;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.08);
-    }
+.noteh3{
+margin:006px;
+}
 
-    .note h3 {
-      margin: 0 0 6px;
-    }
+.danger{
+background:#b00020;
+}
 
-    .danger {
-      background: #b00020;
-    }
+.secondary{
+background:#666;
+}
 
-    .secondary {
-      background: #666;
-    }
+#status,
+#loginStatus{
+margin-top:10px;
+font-size:14px;
+}
 
-    #status {
-      margin-top: 10px;
-      font-size: 14px;
-    }
-
-    @media (max-width: 600px) {
-      header h1 {
-        font-size: 17px;
-      }
-    }
-  </style>
+@media(max-width:600px){
+headerh1{
+font-size:17px;
+}
+}
+</style>
 </head>
 
 <body>
 
 <header>
-  <h1>🔐 My Private Notes</h1>
-  <button id="logoutBtn" onclick="logout()" style="display:none;">
-    Logout
-  </button>
+<h1>🔐MyPrivateNotes</h1>
+
+<buttonid="logoutBtn"onclick="logout()"style="display:none;">
+Logout
+</button>
 </header>
 
-<div class="container">
+<divclass="container">
 
-  <!-- LOGIN -->
-  <div id="login" class="card">
-    <h2>Login</h2>
+<divid="login"class="card">
+<h2>🔐Login</h2>
 
-    <input
-      type="email"
-      id="email"
-      placeholder="Email"
-      autocomplete="email"
-    >
+<input
+type="email"
+id="email"
+placeholder="Email"
+autocomplete="email"
+>
 
-    <input
-      type="password"
-      id="password"
-      placeholder="Password"
-      autocomplete="current-password"
-    >
+<input
+type="password"
+id="password"
+placeholder="Password"
+autocomplete="current-password"
+>
 
-    <button onclick="login()">Login</button>
+<buttononclick="login()">Login</button>
 
-    <div id="loginStatus"></div>
-  </div>
-
-
-  <!-- APP -->
-  <div id="app">
-
-    <div class="card">
-      <h2>📝 New Note</h2>
-
-      <input
-        type="text"
-        id="title"
-        placeholder="Note title"
-      >
-
-      <textarea
-        id="content"
-        placeholder="Write your note..."
-      ></textarea>
-
-      <div class="row">
-        <button onclick="saveNote()">Save Note</button>
-        <button class="secondary" onclick="clearEditor()">Clear</button>
-      </div>
-
-      <div id="status"></div>
-    </div>
+<divid="loginStatus"></div>
+</div>
 
 
-    <div class="card">
-      <h2>🔎 My Notes</h2>
+<divid="app">
 
-      <input
-        type="text"
-        id="search"
-        placeholder="Search notes..."
-        oninput="loadNotes()"
-      >
+<divclass="card">
+<h2>📝NewNote</h2>
 
-      <div id="notesList"></div>
-    </div>
+<input
+type="text"
+id="title"
+placeholder="Notetitle"
+>
 
-  </div>
+<textarea
+id="content"
+placeholder="Writeyournote..."
+></textarea>
+
+<divclass="row">
+<buttononclick="saveNote()">💾SaveNote</button>
+<buttonclass="secondary"onclick="clearEditor()">Clear</button>
+</div>
+
+<divid="status"></div>
+</div>
+
+
+<divclass="card">
+<h2>🔎MyNotes</h2>
+
+<input
+type="text"
+id="search"
+placeholder="Searchnotes..."
+oninput="loadNotes()"
+>
+
+<divid="notesList"></div>
+</div>
+
+</div>
 
 </div>
 
 
 <script>
-  // ==============================
-  // SUPABASE CONNECTION
-  // ==============================
 
-  const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";
+//========================================
+//SUPABASECONNECTION
+//========================================
 
-  const SUPABASE_PUBLISHABLE_KEY =
-    "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
+constSUPABASE_URL=
+"https://neadherlqwnqafiwalov.supabase.co";
 
-  const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
-  );
+constSUPABASE_PUBLISHABLE_KEY=
+"sb_publishable_VA8wWt0-R6IFPPPYfW0Bdg_LS0NYrl4";
 
+constsupabaseClient=
+window.supabase.createClient(
+SUPABASE_URL,
+SUPABASE_PUBLISHABLE_KEY
+);
 
-  // ==============================
-  // START APP
-  // ==============================
 
-  async function startApp() {
-    const {
-      data: { session }
-    } = await supabaseClient.auth.getSession();
+//========================================
+//STARTAPP
+//========================================
 
-    if (session) {
-      showApp();
-    } else {
-      showLogin();
-    }
-  }
+asyncfunctionstartApp(){
 
+const{
+data:{session}
+}=awaitsupabaseClient.auth.getSession();
 
-  function showLogin() {
-    document.getElementById("login").style.display = "block";
-    document.getElementById("app").style.display = "none";
-    document.getElementById("logoutBtn").style.display = "none";
-  }
+if(session){
+showApp();
+}else{
+showLogin();
+}
+}
 
 
-  function showApp() {
-    document.getElementById("login").style.display = "none";
-    document.getElementById("app").style.display = "block";
-    document.getElementById("logoutBtn").style.display = "block";
+functionshowLogin(){
 
-    loadNotes();
-  }
+document.getElementById("login").style.display="block";
 
+document.getElementById("app").style.display="none";
 
-  // ==============================
-  // LOGIN
-  // ==============================
+document.getElementById("logoutBtn").style.display="none";
+}
 
-  async function login() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
 
-    const status = document.getElementById("loginStatus");
+functionshowApp(){
 
-    status.textContent = "Logging in...";
+document.getElementById("login").style.display="none";
 
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
+document.getElementById("app").style.display="block";
 
-    if (error) {
-      status.textContent = "❌ " + error.message;
-      return;
-    }
+document.getElementById("logoutBtn").style.display="block";
 
-    status.textContent = "";
+loadNotes();
+}
 
-    showApp();
-  }
 
+//========================================
+//LOGIN
+//========================================
 
-  // ==============================
-  // LOGOUT
-  // ==============================
+asyncfunctionlogin(){
 
-  async function logout() {
-    await supabaseClient.auth.signOut();
+constemail=
+document.getElementById("email").value.trim();
 
-    showLogin();
-  }
+constpassword=
+document.getElementById("password").value;
 
+conststatus=
+document.getElementById("loginStatus");
 
-  // ==============================
-  // SAVE NOTE
-  // ==============================
+if(!email||!password){
 
-  async function saveNote() {
-    const title = document.getElementById("title").value.trim();
-    const content = document.getElementById("content").value.trim();
-    const status = document.getElementById("status");
+status.textContent=
+"Pleaseenteryouremailandpassword.";
 
-    if (!title && !content) {
-      status.textContent = "Write something first.";
-      return;
-    }
+return;
+}
 
-    const {
-      data: { user }
-    } = await supabaseClient.auth.getUser();
+status.textContent="Loggingin...";
 
-    if (!user) {
-      status.textContent = "Please login again.";
-      return;
-    }
+const{error}=
+awaitsupabaseClient.auth.signInWithPassword({
+email:email,
+password:password
+});
 
-    status.textContent = "Saving...";
+if(error){
 
-    const { error } = await supabaseClient
-      .from("notes")
-      .insert({
-        user_id: user.id,
-        title: title,
-        content: content
-      });
+status.textContent=
+"❌"+error.message;
 
-    if (error) {
-      status.textContent = "❌ " + error.message;
-      return;
-    }
+return;
+}
 
-    status.textContent = "✅ Note saved!";
+status.textContent="";
 
-    clearEditor();
-    loadNotes();
-  }
+showApp();
+}
 
 
-  // ==============================
-  // LOAD NOTES
-  // ==============================
+//========================================
+//LOGOUT
+//========================================
 
-  async function loadNotes() {
-    const search =
-      document.getElementById("search").value.toLowerCase();
+asyncfunctionlogout(){
 
-    let query = supabaseClient
-      .from("notes")
-      .select("*")
-      .order("updated_at", { ascending: false });
+awaitsupabaseClient.auth.signOut();
 
-    const { data, error } = await query;
+clearEditor();
 
-    const list = document.getElementById("notesList");
+showLogin();
+}
 
-    if (error) {
-      list.innerHTML = "❌ " + error.message;
-      return;
-    }
 
-    const filtered = data.filter(note =>
-      note.title.toLowerCase().includes(search) ||
-      note.content.toLowerCase().includes(search)
-    );
+//========================================
+//SAVENOTE
+//========================================
 
-    if (filtered.length === 0) {
-      list.innerHTML = "<p>No notes found.</p>";
-      return;
-    }
+asyncfunctionsaveNote(){
 
-    list.innerHTML = "";
+consttitle=
+document.getElementById("title").value.trim();
 
-    filtered.forEach(note => {
-      const div = document.createElement("div");
+constcontent=
+document.getElementById("content").value.trim();
 
-      div.className = "note";
+conststatus=
+document.getElementById("status");
 
-      div.innerHTML = `
-        <h3>${escapeHtml(note.title || "Untitled")}</h3>
-        <p>${escapeHtml(note.content.substring(0, 150))}</p>
+if(!title&&!content){
 
-        <button onclick="editNote('${note.id}')">
-          Edit
-        </button>
+status.textContent=
+"Writesomethingfirst.";
 
-        <button
-          class="danger"
-          onclick="deleteNote('${note.id}')"
-        >
-          Delete
-        </button>
-      `;
+return;
+}
 
-      list.appendChild(div);
-    });
-  }
+const{
+data:{user}
+}=awaitsupabaseClient.auth.getUser();
 
+if(!user){
 
-  // ==============================
-  // EDIT NOTE
-  // ==============================
+status.textContent=
+"Pleaseloginagain.";
 
-  async function editNote(id) {
-    const { data, error } = await supabaseClient
-      .from("notes")
-      .select("*")
-      .eq("id", id)
-      .single();
+return;
+}
 
-    if (error) {
-      alert(error.message);
-      return;
-    }
+status.textContent="Saving...";
 
-    document.getElementById("title").value = data.title;
-    document.getElementById("content").value = data.content;
+const{error}=
+awaitsupabaseClient
+.from("notes")
+.insert({
+user_id:user.id,
+title:title,
+content:content
+});
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
-  }
+if(error){
 
+status.textContent=
+"❌"+error.message;
 
-  // ==============================
-  // DELETE NOTE
-  // ==============================
+return;
+}
 
-  async function deleteNote(id) {
-    if (!confirm("Delete this note?")) {
-      return;
-    }
+status.textContent=
+"✅Notesaved!";
 
-    const { error } = await supabaseClient
-      .from("notes")
-      .delete()
-      .eq("id", id);
+clearEditor();
 
-    if (error) {
-      alert(error.message);
-      return;
-    }
+loadNotes();
+}
 
-    loadNotes();
-  }
 
+//========================================
+//LOADNOTES
+//========================================
 
-  // ==============================
-  // CLEAR EDITOR
-  // ==============================
+asyncfunctionloadNotes(){
 
-  function clearEditor() {
-    document.getElementById("title").value = "";
-    document.getElementById("content").value = "";
-  }
+constsearch=
+document.getElementById("search").value
+.toLowerCase()
+.trim();
 
+const{
+data:{user}
+}=awaitsupabaseClient.auth.getUser();
 
-  // ==============================
-  // SECURITY HELPER
-  // ==============================
+if(!user)return;
 
-  function escapeHtml(text) {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-  }
+const{
+data,
+error
+}=awaitsupabaseClient
+.from("notes")
+.select("*")
+.eq("user_id",user.id)
+.order("updated_at",{
+ascending:false
+});
 
+constlist=
+document.getElementById("notesList");
 
-  startApp();
+if(error){
+
+list.innerHTML=
+"❌"+error.message;
+
+return;
+}
+
+constfiltered=
+data.filter(note=>
+
+(note.title||"")
+.toLowerCase()
+.includes(search)
+
+||
+
+(note.content||"")
+.toLowerCase()
+.includes(search)
+);
+
+if(filtered.length===0){
+
+list.innerHTML=
+"<p>Nonotesfound.</p>";
+
+return;
+}
+
+list.innerHTML="";
+
+filtered.forEach(note=>{
+
+constdiv=
+document.createElement("div");
+
+div.className="note";
+
+
+consttitle=
+document.createElement("h3");
+
+title.textContent=
+note.title||"Untitled";
+
+
+constcontent=
+document.createElement("p");
+
+content.textContent=
+(note.content||"").substring(0,150);
+
+
+consteditButton=
+document.createElement("button");
+
+editButton.textContent=
+"✏️Edit";
+
+editButton.onclick=
+()=>editNote(note.id);
+
+
+constdeleteButton=
+document.createElement("button");
+
+deleteButton.textContent=
+"🗑️Delete";
+
+deleteButton.className=
+"danger";
+
+deleteButton.onclick=
+()=>deleteNote(note.id);
+
+
+div.appendChild(title);
+
+div.appendChild(content);
+
+div.appendChild(editButton);
+
+div.appendChild(deleteButton);
+
+list.appendChild(div);
+});
+}
+
+
+//========================================
+//EDITNOTE
+//========================================
+
+asyncfunctioneditNote(id){
+
+const{
+data,
+error
+}=awaitsupabaseClient
+.from("notes")
+.select("*")
+.eq("id",id)
+.single();
+
+if(error){
+
+alert(error.message);
+
+return;
+}
+
+document.getElementById("title").value=
+data.title||"";
+
+document.getElementById("content").value=
+data.content||"";
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+}
+
+
+//========================================
+//DELETENOTE
+//========================================
+
+asyncfunctiondeleteNote(id){
+
+if(!confirm("Deletethisnote?")){
+return;
+}
+
+const{error}=
+awaitsupabaseClient
+.from("notes")
+.delete()
+.eq("id",id);
+
+if(error){
+
+alert(error.message);
+
+return;
+}
+
+loadNotes();
+}
+
+
+//========================================
+//CLEAREDITOR
+//========================================
+
+functionclearEditor(){
+
+document.getElementById("title").value="";
+
+document.getElementById("content").value="";
+
+document.getElementById("status").textContent="";
+}
+
+
+//========================================
+//START
+//========================================
+
+startApp();
+
 </script>
 
 </body>
